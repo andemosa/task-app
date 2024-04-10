@@ -3,16 +3,25 @@ import { format } from "date-fns";
 import { Button } from "./ui/button";
 import { CloseIcon, CalenderIcon, ClockIcon } from "./Icons";
 
-import { useDialogDisplayContext } from "@/context/useDialogDisplayContext";
+import {
+  selectTask,
+  closeViewDisplay,
+  openDeleteDisplay,
+  openEditDisplay,
+} from "@/store/features/dialog/dialogSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
 const ViewTask = () => {
-  const { closeViewDisplay, openEditDisplay, openDeleteDisplay, selectedTask } =
-    useDialogDisplayContext();
+  const dispatch = useAppDispatch();
+  const selectedTask = useAppSelector(selectTask);
 
   return (
     <div className="p-4 shadow-md rounded-md">
       <div className="flex justify-end">
-        <CloseIcon className="cursor-pointer" onClick={closeViewDisplay} />
+        <CloseIcon
+          className="cursor-pointer"
+          onClick={() => dispatch(closeViewDisplay())}
+        />
       </div>
       <div className="flex flex-col gap-6">
         <h3 className="font-bold text-lg">{selectedTask?.title}</h3>
@@ -45,11 +54,14 @@ const ViewTask = () => {
           <Button
             variant={"outline"}
             className="border-[#D0D5DD] flex-1"
-            onClick={openDeleteDisplay}
+            onClick={() => dispatch(openDeleteDisplay())}
           >
             Delete
           </Button>
-          <Button className="bg-[#3F5BF6] flex-1" onClick={openEditDisplay}>
+          <Button
+            className="bg-[#3F5BF6] flex-1"
+            onClick={() => dispatch(openEditDisplay())}
+          >
             Edit
           </Button>
         </div>

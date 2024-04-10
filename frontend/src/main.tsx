@@ -1,30 +1,27 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistStore } from "redux-persist";
 
 import { Toaster } from "@/components/ui/toaster";
 
 import App from "./App.tsx";
 
-import CustomSWR from "./context/SWRConfig.tsx";
-import DialogDisplayProvider from "./context/DialogDisplayContext";
-import ModalProvider from "./context/ModalContext.tsx";
-import AuthProvider from "./context/AuthContext";
-
+import { store } from "./store/index.ts";
 import "./index.css";
+
+const persistor = persistStore(store);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <CustomSWR>
-        <ModalProvider>
-          <DialogDisplayProvider>
-            <>
-              <App />
-              <Toaster />
-            </>
-          </DialogDisplayProvider>
-        </ModalProvider>
-      </CustomSWR>
-    </AuthProvider>
+    <Provider store={store}>
+      <PersistGate persistor={persistor}>
+        <>
+          <App />
+          <Toaster />
+        </>
+      </PersistGate>
+    </Provider>
   </React.StrictMode>
 );

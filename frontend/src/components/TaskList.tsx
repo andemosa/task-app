@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { KeyedMutator } from "swr";
-
 import TaskCard from "./TaskCard";
 import { PaginationComp } from "./Pagination";
 import LoadingIndicator from "./Loader";
@@ -12,17 +10,14 @@ const TaskList = ({
   error,
   isLoading,
   page,
-  mutate,
   setPage,
 }: {
   data: ITasksResponse | undefined;
   error: any;
   isLoading: boolean;
   page: number;
-  mutate: KeyedMutator<ITasksResponse>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-
   if (isLoading)
     return (
       <div className="min-h-[200px] flex items-center justify-center">
@@ -31,7 +26,7 @@ const TaskList = ({
     );
 
   if (error)
-    return <>{error?.errorMessage ?? "An error occurred. Please try again"}</>;
+    return <>{error?.data?.errorMessage ?? "An error occurred. Please try again"}</>;
 
   if (data?.tasks?.length === 0)
     return (
@@ -45,7 +40,7 @@ const TaskList = ({
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
           {data.tasks.map((task) => (
-            <TaskCard task={task} key={task._id} mutate={mutate} />
+            <TaskCard task={task} key={task._id} />
           ))}
         </div>
         <PaginationComp
