@@ -1,48 +1,44 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { X } from "lucide-react";
-import useSWRMutation from "swr/mutation";
-import { KeyedMutator } from "swr";
 
 import { Button } from "./ui/button";
 import LoadingIndicator from "./Loader";
 
-import { useModalContext } from "@/context/useModalContext";
-import { useAuthContext } from "@/context/useAuthContext";
+import { closeModal, openLoginModal } from "@/store/features/modal/modalSlice";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  isFetchBaseQueryError,
+  useAuthMutation,
+} from "@/store/features/api/apiSlice";
 
-import useForm from "@/hooks/useForm";
-import { sendPostRequest } from "@/services/axios";
-import { ITasksResponse } from "@/interfaces/task";
-
-const RegisterForm = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
-  const { closeModal, openLoginModal } = useModalContext();
-  const { loginUser } = useAuthContext();
-  const { trigger } = useSWRMutation("/auth/register", sendPostRequest);
+const RegisterForm = () => {
+  const dispatch = useAppDispatch();
+  const [auth, { isLoading, isError, error }] = useAuthMutation();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { formState, submittingForm, formError, formSuccess } = useForm();
 
-  const buttonDisabled = !name || !email || !password || formState.submitting;
+  const buttonDisabled = !name || !email || !password || isLoading;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (buttonDisabled) return;
 
-    submittingForm();
     try {
-      const res = await trigger({
-        name,
-        email,
-        password,
-      });
-      loginUser(res?.data?.user);
-      formSuccess("");
-      mutate()
-      closeModal();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      formError(error.errorMessage);
+      await auth({
+        body: {
+          email,
+          password,
+          name,
+        },
+        method: "POST",
+        url: "/auth/register",
+      }).unwrap();
+      dispatch(closeModal());
+    } catch (error) {
+      // formError(error.errorMessage);
     }
   };
 
@@ -50,7 +46,7 @@ const RegisterForm = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
     <div className="relative">
       <div
         className="absolute right-0 top-0 cursor-pointer p-1 rounded-md border "
-        onClick={closeModal}
+        onClick={() => dispatch(closeModal())}
       >
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
@@ -114,20 +110,22 @@ const RegisterForm = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
               />
             </div>
             <Button className="bg-[#3F5BF6]" disabled={buttonDisabled}>
-              {formState.submitting ? <LoadingIndicator /> : "Register"}
+              {isLoading ? <LoadingIndicator /> : "Register"}
             </Button>
             <p className="font-semibold text-sm text-center">
               Have an account?&nbsp;
               <span
                 className="text-[#3F5BF6] cursor-pointer"
-                onClick={openLoginModal}
+                onClick={() => dispatch(openLoginModal())}
               >
                 Log in
               </span>
             </p>
-            {formState.error && (
+            {isError && (
               <p className="font-semibold text-red-600 text-center">
-                {formState.error}
+                {isFetchBaseQueryError(error)
+                  ? (error?.data as any)?.errorMessage
+                  : "An error occurred"}
               </p>
             )}
           </form>

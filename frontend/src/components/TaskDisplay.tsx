@@ -1,74 +1,72 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import useSWRMutation from "swr/mutation";
-import { KeyedMutator } from "swr";
 
 import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import { CloseIcon, CalenderIcon, ClockIcon, AddBellIcon } from "./Icons";
 import LoadingIndicator from "./Loader";
 
-import { useDialogDisplayContext } from "@/context/useDialogDisplayContext";
+import {
+  selectTask,
+  closeAddDisplay,
+  closeEditDisplay,
+} from "@/store/features/dialog/dialogSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  isFetchBaseQueryError,
+  useTasksMutation,
+} from "@/store/features/api/apiSlice";
 
-import useForm from "@/hooks/useForm";
-import { sendPatchRequest, sendPostRequest } from "@/services/axios";
-import { ITasksResponse } from "@/interfaces/task";
+const TaskDisplay = () => {
+  const dispatch = useAppDispatch();
+  const selectedTask = useAppSelector(selectTask);
 
-const TaskDisplay = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
-  const { closeAddDisplay, closeEditDisplay, selectedTask } =
-    useDialogDisplayContext();
   const { toast } = useToast();
-  const { trigger: postTrigger } = useSWRMutation("/tasks", sendPostRequest);
-  const { trigger: patchTrigger } = useSWRMutation(
-    `/tasks/${selectedTask?._id}`,
-    sendPatchRequest
-  );
+  const [task, { isLoading, isError, error }] = useTasksMutation();
   const [formData, setFormData] = useState({
     ...selectedTask,
   });
 
-  const { formState, submittingForm, formError, formSuccess } = useForm();
   const { date, endTime, reminderTime, startTime, title } = formData;
 
-  const buttonDisabled = !title || !date || !startTime || formState.submitting;
+  const buttonDisabled = !title || !date || !startTime || isLoading;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (startTime && endTime) {
       if (endTime < startTime) {
-        return formError("End time must be later than start time");
+        return toast({
+          description: "End time must be later than start time",
+          variant: "destructive",
+        });
       }
     }
     if (buttonDisabled) return;
-
-    submittingForm();
+    const body = {
+      title,
+      date,
+      startTime,
+      endTime,
+      reminderTime: reminderTime ? +reminderTime : 0,
+    };
     try {
       selectedTask
-        ? await patchTrigger({
-            payload: {
-              title,
-              date,
-              startTime,
-              endTime,
-              reminderTime: reminderTime ? +reminderTime : 0,
-            },
-          })
-        : await postTrigger({
-            title,
-            date,
-            startTime,
-            endTime,
-            reminderTime: reminderTime ? +reminderTime : 0,
-          });
-      formSuccess("");
+        ? await task({
+            body,
+            method: "PATCH",
+            url: `/tasks/${selectedTask?._id}`,
+          }).unwrap()
+        : await task({
+            body,
+            method: "POST",
+            url: `/tasks`,
+          }).unwrap();
       toast({
         description: `Your task has been ${selectedTask ? "updated" : "added"}`,
       });
-      mutate();
-      closeAddDisplay();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
+      dispatch(closeAddDisplay());
+    } catch (error) {
       console.log(error);
-      formError(error?.errorMessage);
     }
   };
 
@@ -92,7 +90,11 @@ const TaskDisplay = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
         </h2>
         <CloseIcon
           className="cursor-pointer"
-          onClick={selectedTask ? closeEditDisplay : closeAddDisplay}
+          onClick={
+            selectedTask
+              ? () => dispatch(closeEditDisplay())
+              : () => dispatch(closeAddDisplay())
+          }
         />
       </div>
       <form className="flex flex-col gap-6" onSubmit={onSubmit}>
@@ -177,7 +179,12 @@ const TaskDisplay = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
           <Button
             variant={"outline"}
             className="border-[#D0D5DD] flex-1"
-            onClick={selectedTask ? closeEditDisplay : closeAddDisplay}
+            disabled={isLoading}
+            onClick={
+              selectedTask
+                ? () => dispatch(closeEditDisplay())
+                : () => dispatch(closeAddDisplay())
+            }
           >
             Cancel
           </Button>
@@ -186,7 +193,7 @@ const TaskDisplay = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
             className="bg-[#3F5BF6] flex-1"
             disabled={buttonDisabled}
           >
-            {formState.submitting ? (
+            {isLoading ? (
               <LoadingIndicator />
             ) : (
               <>{selectedTask ? "Save" : "Add"}</>
@@ -194,9 +201,11 @@ const TaskDisplay = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
           </Button>
         </div>
 
-        {formState.error && (
+        {isError && (
           <p className="font-semibold text-red-600 text-center">
-            {formState.error}
+            {isFetchBaseQueryError(error)
+              ? (error?.data as any)?.errorMessage
+              : "An error occurred"}
           </p>
         )}
       </form>

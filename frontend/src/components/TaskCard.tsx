@@ -1,31 +1,26 @@
 import { format } from "date-fns";
-import { KeyedMutator } from "swr";
-import useSWRMutation from "swr/mutation";
 
 import { useToast } from "./ui/use-toast";
 
-import { useDialogDisplayContext } from "@/context/useDialogDisplayContext";
+import { openViewDisplay } from "@/store/features/dialog/dialogSlice";
+import { useAppDispatch } from "@/store/hooks";
+import { useTasksMutation } from "@/store/features/api/apiSlice";
 
-import { ITask, ITasksResponse } from "@/interfaces/task";
-import { sendPatchRequest } from "@/services/axios";
+import { ITask } from "@/interfaces/task";
 import { isToday } from "@/utils/helpers";
 
-const TaskCard = ({
-  task,
-  mutate,
-}: {
-  task: ITask;
-  mutate: KeyedMutator<ITasksResponse>;
-}) => {
+const TaskCard = ({ task }: { task: ITask }) => {
   const { title, startTimeISO, endTimeISO, date, completed, _id } = task;
   const { toast } = useToast();
-  const { trigger } = useSWRMutation(`/tasks/${_id}`, sendPatchRequest);
-  const { openViewDisplay } = useDialogDisplayContext();
+  const dispatch = useAppDispatch();
+  const [taskAction, { isLoading }] = useTasksMutation();
 
   return (
     <div
-      className="flex flex-row items-center gap-3 bg-[#F9FAFB] border-b border-[#EAECF0] py-4 px-6 text-sm text-[#475467] cursor-pointer hover:bg-[#EAEDFE]"
-      onClick={() => openViewDisplay(task)}
+      className={`flex flex-row items-center gap-3 bg-[#F9FAFB] border-b border-[#EAECF0] py-4 px-6 text-sm text-[#475467] cursor-pointer hover:bg-[#EAEDFE] ${
+        isLoading ? "opacity-50" : ""
+      }`}
+      onClick={() => dispatch(openViewDisplay(task))}
     >
       <label htmlFor="checkbox">
         <input
@@ -34,13 +29,15 @@ const TaskCard = ({
           id="checkbox"
           aria-label="Complete Task"
           className="cursor-pointer"
+          disabled={isLoading}
           checked={completed}
           onClick={(e) => e.stopPropagation()}
           onChange={async () => {
-            await trigger({
-              payload: { completed: !completed },
-            });
-            mutate();
+            await taskAction({
+              body: { completed: !completed },
+              method: "PATCH",
+              url: `/tasks/${_id}`,
+            }).unwrap();
             toast({
               description: "Your task has been updated",
             });
@@ -69,7 +66,11 @@ const TaskCard = ({
           )}
         </div>
       </div>
-      <p>{isToday(new Date(), new Date(date)) ? "Today" : format(new Date(date), "PP")}</p>
+      <p>
+        {isToday(new Date(), new Date(date))
+          ? "Today"
+          : format(new Date(date), "PP")}
+      </p>
     </div>
   );
 };

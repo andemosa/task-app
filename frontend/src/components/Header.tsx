@@ -5,15 +5,19 @@ import {
 } from "@radix-ui/react-popover";
 
 import { Button } from "@/components/ui/button";
-
-import { useModalContext } from "@/context/useModalContext";
-import { useAuthContext } from "@/context/useAuthContext";
-
 import { Logo, SettingsIcon, BellIcon, HamBurgerIcon } from "./Icons";
 
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  openLoginModal,
+  openProfileModal,
+  openRegisterModal,
+} from "@/store/features/modal/modalSlice";
+import { logout, selectCurrentUser } from "@/store/features/auth/authSlice";
+
 const Header = () => {
-  const { openLoginModal, openRegisterModal, openProfileModal } = useModalContext();
-  const { user, logOut } = useAuthContext();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector(selectCurrentUser);
 
   return (
     <header className="flex lg:py-4 lg:px-10 xl:px-20 py-5 px-4 border-b border-[#EAECF0] fixed top-0 left-0 w-full bg-white z-30">
@@ -21,7 +25,10 @@ const Header = () => {
         <Logo />
         {user ? (
           <div className="flex items-center gap-4 lg:gap-10">
-            <span className="lg:inline-block hidden cursor-pointer" onClick={openProfileModal}>
+            <span
+              className="lg:inline-block hidden cursor-pointer"
+              onClick={() => dispatch(openProfileModal())}
+            >
               <SettingsIcon />
             </span>
             <span className="lg:inline-block hidden cursor-pointer">
@@ -36,7 +43,10 @@ const Header = () => {
                 />
               </PopoverTrigger>
               <PopoverContent className="py-4 px-6 bg-white border rounded-md">
-                <Button className="border-[#D0D5DD] flex-1" onClick={logOut}>
+                <Button
+                  className="border-[#D0D5DD] flex-1"
+                  onClick={() => dispatch(logout())}
+                >
                   Logout
                 </Button>
               </PopoverContent>
@@ -50,11 +60,14 @@ const Header = () => {
             <Button
               variant={"outline"}
               className="border-[#D0D5DD] flex-1"
-              onClick={openLoginModal}
+              onClick={() => dispatch(openLoginModal())}
             >
               Login
             </Button>
-            <Button className="bg-[#3F5BF6] flex-1" onClick={openRegisterModal}>
+            <Button
+              className="bg-[#3F5BF6] flex-1"
+              onClick={() => dispatch(openRegisterModal())}
+            >
               Register
             </Button>
           </div>

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
-import useSWR from "swr";
 
 import CalendarComp from "@/components/CalendarComp";
 import Header from "@/components/Header";
@@ -31,11 +30,20 @@ import {
   VIEWTASKDISPLAY,
   dayList,
 } from "@/utils/constants";
-import { ITasksResponse } from "@/interfaces/task";
 
-import { useDialogDisplayContext } from "@/context/useDialogDisplayContext";
-import { useAuthContext } from "@/context/useAuthContext";
-import { useModalContext } from "@/context/useModalContext";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  openAddDisplay,
+  selectDisplay,
+  selectOpen,
+  selectTask,
+} from "@/store/features/dialog/dialogSlice";
+import {
+  selectModalDisplay,
+  selectModalOpen,
+} from "@/store/features/modal/modalSlice";
+import { useGetTasksQuery } from "@/store/features/api/apiSlice";
+import { selectCurrentUser } from "@/store/features/auth/authSlice";
 
 const timeNow = new Date().getHours();
 const greeting =
@@ -48,20 +56,23 @@ const greeting =
 const Home = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [page, setPage] = useState(1);
-  const { data, error, isLoading, mutate } = useSWR<ITasksResponse>([
-    "/tasks",
-    `?date=${date?.getFullYear()}-${String(
-      date && date?.getMonth() + 1
-    ).padStart(2, "0")}-${String(date?.getDate()).padStart(
-      2,
-      "0"
-    )}&page=${page}`,
-  ]);
-  const { open, display, selectedTask, openAddDisplay } =
-    useDialogDisplayContext();
-  const { user } = useAuthContext();
-  const { modalOpen, modalDisplay } = useModalContext();
   const isMobile = useMediaQuery("(min-width: 1024px)");
+  const dispatch = useAppDispatch();
+  const dialogOpen = useAppSelector(selectOpen);
+  const dialogDisplay = useAppSelector(selectDisplay);
+  const selectedTask = useAppSelector(selectTask);
+  const modalOpen = useAppSelector(selectModalOpen);
+  const modalDisplay = useAppSelector(selectModalDisplay);
+  const user = useAppSelector(selectCurrentUser);
+  const { data, isLoading, error } = useGetTasksQuery(
+    {
+      page,
+      date,
+    },
+    {
+      skip: !user,
+    }
+  );
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -89,7 +100,7 @@ const Home = () => {
           </div>
           <Button
             className="bg-[#3F5BF6] hidden lg:flex"
-            onClick={openAddDisplay}
+            onClick={() => dispatch(openAddDisplay())}
           >
             <Plus className="mr-2 h-4 w-4" />
             Create New Task
@@ -139,7 +150,6 @@ const Home = () => {
                     error={error}
                     isLoading={isLoading}
                     page={page}
-                    mutate={mutate}
                     setPage={setPage}
                     key={user?._id}
                   />
@@ -148,39 +158,39 @@ const Home = () => {
             </section>
           </div>
           <div className="w-1/3 pl-4 hidden lg:block">
-            {display === CALENDARDISPLAY && (
+            {dialogDisplay === CALENDARDISPLAY && (
               <CalendarComp selected={date} onSelect={setDate} />
             )}
-            {display === VIEWTASKDISPLAY && <ViewTask />}
-            {display === TASKDISPLAY && (
-              <TaskDisplay mutate={mutate} key={selectedTask?._id} />
+            {dialogDisplay === VIEWTASKDISPLAY && <ViewTask />}
+            {dialogDisplay === TASKDISPLAY && (
+              <TaskDisplay key={selectedTask?._id} />
             )}
-            {display === DELETETASKDISPLAY && <DeleteTask mutate={mutate} />}
+            {dialogDisplay === DELETETASKDISPLAY && <DeleteTask />}
           </div>
         </div>
       </section>
       <section className="fixed bottom-0 left-0 w-full bg-white z-3 p-4 lg:hidden">
-        <AlertDialog open={isMobile ? false : open}>
+        <AlertDialog open={isMobile ? false : dialogOpen}>
           <div
             className="flex justify-between items-center bg-[#F9FAFB] border border-[#D0D5DD] p-3 rounded-lg cursor-pointer"
-            onClick={openAddDisplay}
+            onClick={() => dispatch(openAddDisplay())}
           >
             <p className="text-[#475467] py-1">Input task</p>
             <MicrophoneIcon />
           </div>
           <AlertDialogContent>
-            {display === VIEWTASKDISPLAY && <ViewTask />}
-            {display === TASKDISPLAY && (
-              <TaskDisplay mutate={mutate} key={selectedTask?._id} />
+            {dialogDisplay === VIEWTASKDISPLAY && <ViewTask />}
+            {dialogDisplay === TASKDISPLAY && (
+              <TaskDisplay key={selectedTask?._id} />
             )}
-            {display === DELETETASKDISPLAY && <DeleteTask mutate={mutate} />}
+            {dialogDisplay === DELETETASKDISPLAY && <DeleteTask />}
           </AlertDialogContent>
         </AlertDialog>
       </section>
       <Dialog open={modalOpen}>
         <DialogContent>
-          {modalDisplay === REGISTERMODAL && <RegisterForm mutate={mutate} />}
-          {modalDisplay === LOGINMODAL && <LoginForm mutate={mutate} />}
+          {modalDisplay === REGISTERMODAL && <RegisterForm />}
+          {modalDisplay === LOGINMODAL && <LoginForm />}
           {modalDisplay === PROFILEMODAL && <ProfileForm />}
         </DialogContent>
       </Dialog>

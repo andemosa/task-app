@@ -1,37 +1,39 @@
-import useSWRMutation from "swr/mutation";
-import { KeyedMutator } from "swr";
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "./ui/button";
 import { useToast } from "./ui/use-toast";
 import { CloseIcon } from "./Icons";
 import LoadingIndicator from "./Loader";
 
-import { useDialogDisplayContext } from "@/context/useDialogDisplayContext";
-import { sendDeleteRequest } from "@/services/axios";
-import useForm from "@/hooks/useForm";
-import { ITasksResponse } from "@/interfaces/task";
+import {
+  selectTask,
+  closeViewDisplay,
+  closeDeleteDisplay,
+} from "@/store/features/dialog/dialogSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  isFetchBaseQueryError,
+  useTasksMutation,
+} from "@/store/features/api/apiSlice";
 
-const DeleteTask = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
-  const { closeDeleteDisplay, closeViewDisplay, selectedTask } =
-    useDialogDisplayContext();
+const DeleteTask = () => {
+  const dispatch = useAppDispatch();
+  const selectedTask = useAppSelector(selectTask);
   const { toast } = useToast();
-  const { trigger } = useSWRMutation(`/tasks`, sendDeleteRequest);
-  const { formState, submittingForm, formError, formSuccess } = useForm();
+  const [task, { isLoading, isError, error }] = useTasksMutation();
 
   const onSubmit = async () => {
-    submittingForm();
     try {
-      await trigger(`/${selectedTask?._id}`);
-      formSuccess("");
+      await task({
+        body: {},
+        method: "DELETE",
+        url: `/tasks/${selectedTask?._id}`,
+      }).unwrap();
       toast({
         description: `Your task has been deleted`,
       });
-      mutate();
-      closeViewDisplay();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.log(error);
-      formError(error?.errorMessage);
+      dispatch(closeViewDisplay());
+    } catch (error) {
+      // console.log(error);
     }
   };
 
@@ -51,18 +53,25 @@ const DeleteTask = ({ mutate }: { mutate: KeyedMutator<ITasksResponse> }) => {
           <Button
             variant={"outline"}
             className="border-[#D0D5DD] flex-1"
-            onClick={closeDeleteDisplay}
+            disabled={isLoading}
+            onClick={() => dispatch(closeDeleteDisplay())}
           >
             Cancel
           </Button>
-          <Button className="bg-[#ef4444] flex-1" onClick={onSubmit}>
-            {formState.submitting ? <LoadingIndicator /> : "Delete"}
+          <Button
+            className="bg-[#ef4444] flex-1"
+            disabled={isLoading}
+            onClick={onSubmit}
+          >
+            {isLoading ? <LoadingIndicator /> : "Delete"}
           </Button>
         </div>
 
-        {formState.error && (
+        {isError && (
           <p className="font-semibold text-red-600 text-center">
-            {formState.error}
+            {isFetchBaseQueryError(error)
+              ? (error?.data as any)?.errorMessage
+              : "An error occurred"}
           </p>
         )}
       </div>

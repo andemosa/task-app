@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { X } from "lucide-react";
-import useSWRMutation from "swr/mutation";
 
 import { Button } from "./ui/button";
 import LoadingIndicator from "./Loader";
 import { CameraIcon } from "./Icons";
 
-import { useModalContext } from "@/context/useModalContext";
-import { useAuthContext } from "@/context/useAuthContext";
+import { closeModal } from "@/store/features/modal/modalSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  isFetchBaseQueryError,
+  useAuthMutation,
+} from "@/store/features/api/apiSlice";
+import { selectCurrentUser } from "@/store/features/auth/authSlice";
 
-import useForm from "@/hooks/useForm";
-import { sendPatchRequest } from "@/services/axios";
 import uploadImage from "@/utils/upload";
 
 interface IFormData {
@@ -22,9 +25,10 @@ interface IFormData {
 }
 
 const ProfileForm = () => {
-  const { closeModal } = useModalContext();
-  const { user, loginUser } = useAuthContext();
-  const { trigger } = useSWRMutation("/users/me", sendPatchRequest);
+  const dispatch = useAppDispatch();
+  const [auth, { isLoading, isError, error }] = useAuthMutation();
+  const user = useAppSelector(selectCurrentUser);
+
   const [formData, setFormData] = useState<IFormData>({
     email: user?.email,
     name: user?.name,
@@ -32,9 +36,8 @@ const ProfileForm = () => {
     password: "",
   });
   const { email, name, password, avatar } = formData;
-  const { formState, submittingForm, formError, formSuccess } = useForm();
 
-  const buttonDisabled = !name || !email || formState.submitting;
+  const buttonDisabled = !name || !email || isLoading;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, files } = e.target;
@@ -64,7 +67,6 @@ const ProfileForm = () => {
     e.preventDefault();
     if (buttonDisabled) return;
 
-    submittingForm();
     try {
       let payload: Record<string, string> = {
         ...(name && { name: name }),
@@ -80,15 +82,14 @@ const ProfileForm = () => {
         };
       }
 
-      const res = await trigger({
-        payload,
-      });
-      formSuccess("");
-      loginUser(res?.data?.user);
-      closeModal();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      formError(error.errorMessage ?? "An error occurred. Please try again");
+      await auth({
+        body: payload,
+        method: "PATCH",
+        url: "/users/me",
+      }).unwrap();
+      dispatch(closeModal());
+    } catch (error) {
+      // formError(error.errorMessage ?? "An error occurred. Please try again");
     }
   };
 
@@ -96,7 +97,7 @@ const ProfileForm = () => {
     <div className="relative">
       <div
         className="absolute right-0 top-0 cursor-pointer p-1 rounded-md border "
-        onClick={closeModal}
+        onClick={() => dispatch(closeModal())}
       >
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
@@ -187,12 +188,14 @@ const ProfileForm = () => {
               />
             </div>
             <Button className="bg-[#3F5BF6]" disabled={buttonDisabled}>
-              {formState.submitting ? <LoadingIndicator /> : "Update"}
+              {isLoading ? <LoadingIndicator /> : "Update"}
             </Button>
 
-            {formState.error && (
+            {isError && (
               <p className="font-semibold text-red-600 text-center">
-                {formState.error}
+                {isFetchBaseQueryError(error)
+                  ? (error?.data as any)?.errorMessage
+                  : "An error occurred"}
               </p>
             )}
           </form>
