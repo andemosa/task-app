@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { AddressInfo } from "net";
 
 import app from "./express";
 import logger from "./utils/logger";
+import job from "./jobs/cron";
 
 dotenv.config();
 const PORT = process.env.PORT || 4000;
@@ -24,5 +26,8 @@ async function connectToDatabase() {
 
 const server = app.listen(PORT, async () => {
   await connectToDatabase();
-  logger.info(`Server listening at http://localhost:${PORT}`);
+  job.start();
+  const host = (server?.address() as AddressInfo)?.address;
+  const port = (server?.address() as AddressInfo)?.port;
+  logger.info(`Server listening at http://${host}:${port}`);
 });
