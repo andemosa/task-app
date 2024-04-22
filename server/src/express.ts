@@ -15,7 +15,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5174", "https://task-app-andemosa.vercel.app/"],
+    origin: ["http://localhost:5174", "https://task-app-andemosa.vercel.app"],
   })
 );
 
