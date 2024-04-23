@@ -87,8 +87,15 @@ const baseQueryWithReauth: (baseQuery: BaseQueryType) => BaseQueryType =
       (result.error && result.error.status === 401) ||
       result.error?.status === 403
     ) {
-      window.localStorage.removeItem("persist:root");
-      location.reload();
+      if (window.localStorage.getItem("persist:root")) {
+        const userObj = JSON.parse(
+          JSON.parse(window.localStorage.getItem("persist:root")!)?.auth
+        );
+        if (userObj && userObj.user) {
+          window.localStorage.removeItem("persist:root");
+          location.reload();
+        }
+      }
     }
     return result;
   };
