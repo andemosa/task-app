@@ -1,5 +1,131 @@
 import { number, object, string, TypeOf } from "zod";
 
+/**
+ * @openapi
+ * components:
+ *  schemas:
+ *    CreateTaskSchema:
+ *      type: object
+ *      required:
+ *        - title
+ *        - date
+ *        - startTime
+ *      properties:
+ *        title:
+ *          type: string
+ *          default: Create Wireframe
+ *        date:
+ *          type: string
+ *          default: 2024-03-25
+ *        startTime:
+ *          type: string
+ *          default: 10:30
+ *        endTime:
+ *          type: string
+ *          default: 11:30
+ *    CreateTaskResponse:
+ *      type: object
+ *      properties:
+ *        _id:
+ *          type: string
+ *        createdAt:
+ *          type: string
+ *        updatedAt:
+ *          type: string
+ *        title:
+ *          type: string
+ *        date:
+ *          type: string
+ *        startTime:
+ *          type: string
+ *        endTime:
+ *          type: string
+ *        completed:
+ *          type: boolean
+ *        startTimeISO:
+ *          type: string
+ *        endTimeISO:
+ *          type: string
+ *        user:
+ *          type: string
+ *    GetTasksResponse:
+ *      type: object
+ *      properties:
+ *        success:
+ *          type: boolean
+ *        page:
+ *          type: string
+ *        limit:
+ *          type: string
+ *        total:
+ *          type: string
+ *        tasks:
+ *          type: array
+ *          items:
+ *            type: object
+ *            properties:
+ *              _id:
+ *                type: string
+ *              createdAt:
+ *                type: string
+ *              updatedAt:
+ *                type: string
+ *              title:
+ *                type: string
+ *              date:
+ *                type: string
+ *              startTime:
+ *                type: string
+ *              endTime:
+ *                type: string
+ *              completed:
+ *                type: boolean
+ *              startTimeISO:
+ *                type: string
+ *              endTimeISO:
+ *                type: string
+ *              user:
+ *                type: string
+ *    UpdateTaskResponse:
+ *      type: object
+ *      properties:
+ *        success:
+ *          type: boolean
+ *        task:
+ *          type: object
+ *          properties:
+ *            _id:
+ *              type: string
+ *            createdAt:
+ *              type: string
+ *            updatedAt:
+ *              type: string
+ *            title:
+ *              type: string
+ *            date:
+ *              type: string
+ *            startTime:
+ *              type: string
+ *            endTime:
+ *              type: string
+ *            startTimeISO:
+ *              type: string
+ *            endTimeISO:
+ *              type: string
+ *            user:
+ *              type: string
+ *            completed:
+ *              type: boolean
+ *    DeleteTaskResponse:
+ *      type: object
+ *      properties:
+ *        success:
+ *          type: boolean
+ *        message:
+ *          type: string
+ *          default: Task has been deleted!
+ *
+ */
 export const CreateTaskSchema = object({
   body: object({
     title: string({

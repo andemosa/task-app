@@ -1,0 +1,419 @@
+openapi: 3.0.0
+info:
+  title: Node.js Rest API  - OpenAPI 3.0
+  version: 1.0.0
+  description: Task Manager Application
+  contact:
+    name: Anderson Osayerie
+    email: osayerieanderson@gmail.com
+    url: https://andemosa.vercel.app/
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a user
+      description: This endpoint is used when creating a user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterSchema"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          description: Bad request
+        "409":
+          description: Conflict
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login a user
+      description: This endpoint is used to login a user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginSchema"
+      responses:
+        "200":
+          description: User logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Unauthorized
+  /api/tasks:
+    post:
+      tags:
+        - Task
+      summary: Create a task
+      description: This endpoint is used when a user wants to create a task.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskSchema"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateTaskResponse"
+        "400":
+          description: Bad request
+        "409":
+          description: Conflict
+    get:
+      tags:
+        - Task
+      summary: Return a list of tasks
+      description: This endpoint is used to return a list of tasks. It accepts query
+        filters.
+      parameters:
+        - in: query
+          name: date
+          schema:
+            type: string
+            default: 2024-03-25
+          description: The date for which asks should be gotten
+        - in: query
+          name: limit
+          schema:
+            type: number
+            default: 10
+          description: The number of tasks shown per page
+        - in: query
+          name: page
+          schema:
+            type: number
+            default: 1
+          description: The current page
+      responses:
+        "200":
+          description: Returns a list of tasks for the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTasksResponse"
+        "400":
+          description: Bad request
+        "409":
+          description: Conflict
+  "/api/tasks/{taskId}":
+    patch:
+      tags:
+        - Task
+      summary: Update a task
+      description: This endpoint is used when a user wants to update a task.
+      parameters:
+        - name: taskId
+          in: path
+          description: The id of the task
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskSchema"
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateTaskResponse"
+        "403":
+          description: Forbidden
+        "404":
+          description: Task not found
+    delete:
+      tags:
+        - Task
+      summary: Delete a task
+      description: This endpoint is used when a user wants to delete a task.
+      parameters:
+        - name: taskId
+          in: path
+          description: The id of the task
+          required: true
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteTaskResponse"
+        "403":
+          description: Forbidden
+        "404":
+          description: Task not found
+  /api/users/me:
+    patch:
+      tags:
+        - User
+      summary: Edit user info
+      description: This endpoint is used to edit user info. Name, password and avatar
+        can be changed using this endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserSchema"
+      responses:
+        "200":
+          description: User info updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateUserResponse"
+        "400":
+          description: Bad request
+        "409":
+          description: Conflict
+components:
+  schemas:
+    CreateTaskSchema:
+      type: object
+      required:
+        - title
+        - date
+        - startTime
+      properties:
+        title:
+          type: string
+          default: Create Wireframe
+        date:
+          type: string
+          default: 2024-03-25
+        startTime:
+          type: string
+          default: 10:30
+        endTime:
+          type: string
+          default: 11:30
+    CreateTaskResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        title:
+          type: string
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        completed:
+          type: boolean
+        startTimeISO:
+          type: string
+        endTimeISO:
+          type: string
+        user:
+          type: string
+    GetTasksResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        page:
+          type: string
+        limit:
+          type: string
+        total:
+          type: string
+        tasks:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              createdAt:
+                type: string
+              updatedAt:
+                type: string
+              title:
+                type: string
+              date:
+                type: string
+              startTime:
+                type: string
+              endTime:
+                type: string
+              completed:
+                type: boolean
+              startTimeISO:
+                type: string
+              endTimeISO:
+                type: string
+              user:
+                type: string
+    UpdateTaskResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        task:
+          type: object
+          properties:
+            _id:
+              type: string
+            createdAt:
+              type: string
+            updatedAt:
+              type: string
+            title:
+              type: string
+            date:
+              type: string
+            startTime:
+              type: string
+            endTime:
+              type: string
+            startTimeISO:
+              type: string
+            endTimeISO:
+              type: string
+            user:
+              type: string
+            completed:
+              type: boolean
+    DeleteTaskResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+          default: Task has been deleted!
+    RegisterSchema:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          default: jane.doe@example.com
+        name:
+          type: string
+          default: Jane Doe
+        password:
+          type: string
+          default: stringPassword123
+    RegisterResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+        user:
+          type: object
+          properties:
+            email:
+              type: string
+            name:
+              type: string
+            _id:
+              type: string
+            createdAt:
+              type: string
+            updatedAt:
+              type: string
+            token:
+              type: string
+    LoginSchema:
+      type: object
+      required:
+        - email
+        - password
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          default: jane.doe@example.com
+        password:
+          type: string
+          default: stringPassword123
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          type: object
+          properties:
+            email:
+              type: string
+            name:
+              type: string
+            _id:
+              type: string
+            createdAt:
+              type: string
+            updatedAt:
+              type: string
+            token:
+              type: string
+    UpdateUserSchema:
+      type: object
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          default: jane.doe@example.com
+        password:
+          type: string
+          default: stringPassword123
+        avatar:
+          type: string
+          default: http://res.cloudinary.com/test/image/upload/qtltmsivf8n1bh9.jpg
+    UpdateUserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          type: object
+          properties:
+            email:
+              type: string
+            name:
+              type: string
+            _id:
+              type: string
+            createdAt:
+              type: string
+            updatedAt:
+              type: string
+tags:
+  - name: Auth
+    description: The Auth API provides endpoints for registering and logging in a user.
+  - name: Task
+    description: The Task API provides endpoints for managing tasks, including
+      creating, updating, retrieving, and deleting user's tasks.
+  - name: User
+    description: The User API provides an endpoint for updating user info.

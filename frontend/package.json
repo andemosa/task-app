@@ -1,8 +1,18 @@
 {
   "name": "frontend",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Task Manager Application Frontend",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andemosa/task-app.git"
+  },
+  "author": {
+    "name": "Anderson Osayerie",
+    "email": "osayerieanderson@gmail.com",
+    "url": "https://andemosa.vercel.app/"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

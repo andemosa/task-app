@@ -1,5 +1,114 @@
 import { object, string, TypeOf } from "zod";
 
+/**
+ * @openapi
+ * components:
+ *  schemas:
+ *    RegisterSchema:
+ *      type: object
+ *      additionalProperties: false
+ *      required:
+ *        - email
+ *        - name
+ *        - password
+ *      properties:
+ *        email:
+ *          type: string
+ *          default: jane.doe@example.com
+ *        name:
+ *          type: string
+ *          default: Jane Doe
+ *        password:
+ *          type: string
+ *          default: stringPassword123
+ *    RegisterResponse:
+ *      type: object
+ *      properties:
+ *        message:
+ *          type: string
+ *        success:
+ *          type: boolean
+ *        user:
+ *          type: object
+ *          properties:
+ *            email:
+ *              type: string
+ *            name:
+ *              type: string
+ *            _id:
+ *              type: string
+ *            createdAt:
+ *              type: string
+ *            updatedAt:
+ *              type: string
+ *            token:
+ *              type: string
+ *    LoginSchema:
+ *      type: object
+ *      required:
+ *        - email
+ *        - password
+ *      additionalProperties: false
+ *      properties:
+ *        email:
+ *          type: string
+ *          default: jane.doe@example.com
+ *        password:
+ *          type: string
+ *          default: stringPassword123
+ *    LoginResponse:
+ *      type: object
+ *      properties:
+ *        success:
+ *          type: boolean
+ *        user:
+ *          type: object
+ *          properties:
+ *            email:
+ *              type: string
+ *            name:
+ *              type: string
+ *            _id:
+ *              type: string
+ *            createdAt:
+ *              type: string
+ *            updatedAt:
+ *              type: string
+ *            token:
+ *              type: string
+ *    UpdateUserSchema:
+ *      type: object
+ *      additionalProperties: false
+ *      properties:
+ *        email:
+ *          type: string
+ *          default: jane.doe@example.com
+ *        password:
+ *          type: string
+ *          default: stringPassword123
+ *        avatar:
+ *          type: string
+ *          default: http://res.cloudinary.com/test/image/upload/qtltmsivf8n1bh9.jpg
+ *    UpdateUserResponse:
+ *      type: object
+ *      properties:
+ *        success:
+ *          type: boolean
+ *        user:
+ *          type: object
+ *          properties:
+ *            email:
+ *              type: string
+ *            name:
+ *              type: string
+ *            _id:
+ *              type: string
+ *            createdAt:
+ *              type: string
+ *            updatedAt:
+ *              type: string
+ */
+
 export const RegisterSchema = object({
   body: object({
     name: string({

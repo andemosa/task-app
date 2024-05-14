@@ -1,13 +1,24 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "main.ts",
+  "description": "Task Manager Application",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andemosa/task-app.git"
+  },
+  "author": {
+    "name": "Anderson Osayerie",
+    "email": "osayerieanderson@gmail.com",
+    "url": "https://andemosa.vercel.app/"
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js",
-    "render:build": "yarn && tsc"
+    "render:build": "yarn && tsc",
+    "swagger": "npx swagger-jsdoc -o ../swagger.yaml -d ./swagger.config.js ./src/routes/*.route.ts ./src/schema/*.schema.ts"
   },
   "dependencies": {
     "@types/dotenv": "^8.2.0",
@@ -23,6 +34,8 @@
     "mongoose": "^6.0.8",
     "pino": "^6.13.3",
     "pino-pretty": "^7.0.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "4.1.6",
     "typescript": "^4.4.3",
     "zod": "^3.9.5"
   },
@@ -36,6 +49,8 @@
     "@types/node-cron": "^3.0.11",
     "@types/pino": "^6.3.11",
     "@types/pino-std-serializers": "4.0.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.6",
     "ts-node-dev": "^1.1.8"
   }
 }
