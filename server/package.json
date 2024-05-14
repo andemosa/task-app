@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "build": "tsc",
-    "start": "node dist/main.js",
+    "start": "node dist/src/main.js",
     "render:build": "yarn && tsc",
     "swagger": "npx swagger-jsdoc -o ../swagger.yaml -d ./swagger.config.js ./src/routes/*.route.ts ./src/schema/*.schema.ts"
   },
