@@ -17,11 +17,15 @@ const updateUser = async (
       Object.assign(user, req.body);
       await user.save();
 
+      const token = generateToken(user._id.toString());
       const { password, ...info } = user._doc;
 
       res.status(200).json({
         success: true,
-        user: info,
+        user: {
+          token,
+          ...info,
+        },
       });
     } else {
       next(createError(404, 5, "User not found!"));
